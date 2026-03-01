@@ -1,0 +1,89 @@
+import os
+from dotenv import load_dotenv
+
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON, Boolean, create_engine
+from sqlalchemy.ext.mutable import MutableList
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship, sessionmaker
+
+#Carrega diretamente os arquivos da pasta ambientevirtual
+load_dotenv()
+
+database_url = os.getenv("DATABASE_URL")
+engine = create_engine(database_url)
+Base = declarative_base()
+
+class IA(Base):
+    __tablename__ = "ias"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, unique=True)
+    phone_number = Column(String, nullable=False, unique=True)
+    status = Column(Boolean, nullable=False, default=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    prompts = relationship("Prompt", back_populates="ia")
+    ia_config = relationship("IAConfig", back_populates="ia", uselist=False)
+    leads = relationship("Lead", back_populates="ia", uselist=False)
+
+class IAConfig(Base):
+    __tablename__ = "ia_config"
+    id = Column(Integer, primary_key=True, index=True)
+    ia_id = Column(Integer, ForeignKey("ias.id"), nullable=False)
+    channel = Column(String, nullable=False)
+    ai_api = Column(String, nullable=False)
+    encrypted_credentials = Column(String, nullable=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    ia = relationship("IA", back_populates="ia_config")
+
+    @property
+    def credentials(self):
+        return decrypt_data(self.encrypted_credentials) # type: ignore
+
+
+class Prompt(Base):
+    __tablename__ = "prompts"
+    id = Column(Integer, primary_key=True, index=True)
+    ia_id = Column(Integer, ForeignKey("ias.id"), nullable=False)
+    prompt_text = Column(String, nullable=False)
+    is_active = Column(Boolean, default=False, nullable=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    ia = relationship("IA", back_populates="prompts")
+
+
+class Lead(Base):
+    __tablename__ = "leads"
+    id = Column(Integer, primary_key=True, index=True)
+    ia_id = Column(Integer, ForeignKey("ias.id"), nullable=False)
+    name = Column(String, nullable=False)
+    phone = Column(String, nullable=False, unique=True)
+    message = Column(MutableList.as_mutable(JSON), nullable=False)
+    resume = Column(String, nullable=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    ia = relationship("IA", back_populates="leads")
+
+
+Base.metadata.create_all(engine)
+
+SessinLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_db():
+    db = SessinLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+if __name__ == "__main__":
+    print("Banco de dados criado com sucesso!")
