@@ -1,18 +1,14 @@
-import os
-from dotenv import load_dotenv
-
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON, Boolean, create_engine
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.ext.mutable import MutableList
-from sqlalchemy.orm import declarative_base
+
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
-#Carrega diretamente os arquivos da pasta ambientevirtual
-load_dotenv()
+from app.service.crypto import decrypt_data
 
-database_url = os.getenv("DATABASE_URL")
-engine = create_engine(database_url)
 Base = declarative_base()
+
 
 class IA(Base):
     __tablename__ = "ias"
@@ -27,6 +23,11 @@ class IA(Base):
     prompts = relationship("Prompt", back_populates="ia")
     ia_config = relationship("IAConfig", back_populates="ia", uselist=False)
     leads = relationship("Lead", back_populates="ia", uselist=False)
+
+    @property
+    def active_prompt(self):
+        active = [p for p in self.prompts if p.is_active]
+        return active[0] if active else None
 
 class IAConfig(Base):
     __tablename__ = "ia_config"
@@ -72,18 +73,3 @@ class Lead(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     ia = relationship("IA", back_populates="leads")
-
-
-Base.metadata.create_all(engine)
-
-SessinLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def get_db():
-    db = SessinLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-if __name__ == "__main__":
-    print("Banco de dados criado com sucesso!")
