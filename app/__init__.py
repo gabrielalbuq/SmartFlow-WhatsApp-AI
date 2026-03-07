@@ -1,1 +1,1 @@
-#arquivo de inicialização
+# Inicializa o pacote app
