@@ -73,12 +73,12 @@
 
                 <textarea class="form-control mb-4 flex-grow-1" rows="6" style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 0.9rem; resize: none; background-color: #121212; border: 1px solid #2a2a2a; color: #fff;" readonly>{{ prompt.text }}</textarea>
 
-                <div class="ia-actions mt-auto pt-3" style="border-top: 1px solid #2a2a2a; display: flex; justify-content: space-around;">
-                    <button class="action-btn" data-toggle="modal" data-target="#editPromptModal{{ prompt.id }}" title="Editar Prompt" style="background: none; border: none; color: #a0a0a0; display: flex; flex-direction: column; align-items: center; gap: 5px;">
-                        <i class="bi bi-pencil" style="font-size: 1.1rem; color: #a0a0a0;"></i> Editar
-                    </button>
-                    <button class="action-btn" data-toggle="modal" data-target="#deletePromptModal{{ prompt.id }}" title="Deletar Prompt" style="background: none; border: none; color: #ff4d4d; display: flex; flex-direction: column; align-items: center; gap: 5px;">
-                        <i class="bi bi-trash" style="font-size: 1.1rem; color: #ff4d4d;"></i> Excluir
+                <div class="ia-actions mt-auto pt-3" style="border-top: 1px solid #2a2a2a; display: flex; justify-content: space-around;">         
+                    <button class="action-btn" data-toggle="modal" data-target="#editPromptModal{{ prompt.id }}" title="Editar Prompt">
+                        <i class="bi bi-pencil" style="font-size: 1.1rem;"></i> Editar
+                    </button>   
+                    <button class="action-btn delete" data-toggle="modal" data-target="#deletePromptModal{{ prompt.id }}" title="Deletar Prompt">
+                        <i class="bi bi-trash" style="font-size: 1.1rem;"></i> Excluir
                     </button>
                 </div>
             </div>
