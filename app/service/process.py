@@ -1,5 +1,6 @@
 from app.database.manipulations import ia_manipulations, lead_manipulations
 from app.service.queue_manager import get_phone_lock
+from app.service.llm_response import IAresponse
 
 def process_webhook_data(data:dict):
     """
@@ -40,6 +41,20 @@ def process_webhook_data(data:dict):
             lead_db = lead_manipulations.filter_lead(lead_phone, message_atual_lead)
             if not lead_db:
                 lead_db = lead_manipulations.new_lead(ia_infos.id, lead_name, lead_phone, [message_atual_lead])
+
+            #Gerando resposta com LLM
+            historico = lead_db.message
+            resume_lead = lead_db.resume
+            api_key = ia_infos.ia_config.credentials.get("api_key")
+            ia_model = ia_infos.ia_config.credentials.get("ai_model", "")
+            system_prompt = ia_infos.active_prompt
+            if not system_prompt:
+                raise(Exception("Nenhum prompt cadastrado ou ativo para a ia"))
+
+            llm = IAresponse(api_key, ia_model, system_prompt.prompt_text, resume_lead)
+            response_lead = llm.generate_response(message_content, historico)
+            if not response_lead:
+                raise(Exception("Nenhuma resposta foi gerada pela ia"))
 
     except Exception as ex:
         print(f"ERROR IN PROCESS: {ex}")
