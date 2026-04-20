@@ -11,5 +11,7 @@
         },
         "**/*.pytest_cache": true,
         "**/*__pycache__": true
-    }
+    },
+    "python-envs.defaultEnvManager": "ms-python.python:poetry",
+    "python-envs.defaultPackageManager": "ms-python.python:poetry"
 }
