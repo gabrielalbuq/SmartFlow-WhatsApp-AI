@@ -1,6 +1,7 @@
 from app.database.manipulations import ia_manipulations, lead_manipulations
 from app.service.queue_manager import get_phone_lock
 from app.service.llm_response import IAresponse
+from app.service.quebra_mensagens import *
 
 def process_webhook_data(data:dict):
     """
@@ -55,6 +56,8 @@ def process_webhook_data(data:dict):
             response_lead = llm.generate_response(message_content, historico)
             if not response_lead:
                 raise(Exception("Nenhuma resposta foi gerada pela ia"))
+            
+            
 
     except Exception as ex:
         print(f"ERROR IN PROCESS: {ex}")
