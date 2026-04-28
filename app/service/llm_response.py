@@ -5,6 +5,10 @@ from langchain_core.prompts import PromptTemplate
 # Importando os dois motores: OpenAI e Google Gemini
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
+from app.service.vector_store import VectorStoreService
+from app.service.tools import create_knowledge_tool
+from langchain.agents import create_agent
+
 
 class IAresponse:
     def __init__(self, api_key:str, ia_model:str, system_prompt:str, resume_lead:str = ""):
