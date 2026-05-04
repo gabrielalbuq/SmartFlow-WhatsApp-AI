@@ -1,5 +1,6 @@
 # app/service/vector_store.py
 
+import os
 from pathlib import Path
 from typing import List, Optional
 
@@ -8,7 +9,8 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-
+from dotenv import load_dotenv
+load_dotenv()
 BASE_DIR = Path(__file__).resolve().parents[2]
 VECTOR_DB_DIR = BASE_DIR / "vector_db"
 
@@ -16,7 +18,8 @@ VECTOR_DB_DIR = BASE_DIR / "vector_db"
 class VectorStoreService:
     def __init__(self):
         self.embeddings = OpenAIEmbeddings(
-            model="text-embedding-3-small"
+            model="models/embedding-001",
+            api_key=os.getenv("API_KEY")
         )
 
     def get_vectorstore(self, bot_id: int | str) -> Chroma:

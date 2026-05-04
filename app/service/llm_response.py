@@ -10,6 +10,7 @@ from app.service.tools import create_knowledge_tool
 from langchain.agents import create_agent
 
 
+vector_service = VectorStoreService()
 class IAresponse:
     def __init__(self, api_key:str, ia_model:str, system_prompt:str, resume_lead:str = ""):
         self.api_key = api_key
@@ -52,39 +53,52 @@ class IAresponse:
                 temperature=0.2
             )
 
-    def generate_response(self, message_lead:str, history_message:list=[]) -> str:
+    def generate_response(self, bot_id: int, message_lead: str, history_message: list = []) -> str:
         try:
-            # Inicializa a memória e o prompt
-            memory = ConversationBufferWindowMemory(k=20)
-            review_template = PromptTemplate.from_template(self.prompt_template)
-
-            conversation = ConversationChain(
-                llm=self.chat,
-                memory=memory,
-                prompt=review_template,
-                verbose=False
+            retriever = vector_service.get_retriever(bot_id=bot_id)
+            knowledge_tool = create_knowledge_tool(retriever)
+            agent = create_agent(
+                model=self.chat,
+                tools=[knowledge_tool],
+                
             )
+    
+            system_prompt = self.prompt_template
 
-            # iii) ALIMENTAR A MEMÓRIA COM O HISTÓRICO
+            messages = [
+                ("system", system_prompt)
+            ]
+
+            
             if history_message:
                 for msg in history_message:
-                    # Pula a mensagem atual se ela já foi salva no banco antes de chamar a IA
+
                     if msg.get("content") == message_lead and msg.get("role") == "user":
                         continue
 
                     if msg.get("role") == "user":
-                        conversation.memory.chat_memory.add_user_message(msg.get("content") or "")
-                    
+                        messages.append(("user", msg.get("content") or ""))
+
                     elif msg.get("role") == "assistant":
-                        conversation.memory.chat_memory.add_ai_message(msg.get("content") or "")
+                        messages.append(("assistant", msg.get("content") or ""))
 
             print(f"Total de interações carregadas: {len(history_message)}")
+
             
-            # iv) GERAR RESPOSTA
-            resposta = conversation.predict(input=message_lead)
+            messages.append(("user", message_lead))
+
+            
+            response = agent.invoke({
+                "messages": messages
+            })
+
+            resposta = response["messages"][-1].content
+
             print(f"Resposta da IA: {resposta}")
-            
+
             return resposta
+
+            
 
         except Exception as ex:
             print(f"Erro ao processar resposta: {ex}")
