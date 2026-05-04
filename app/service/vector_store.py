@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from langchain_chroma import Chroma
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -17,7 +18,7 @@ VECTOR_DB_DIR = BASE_DIR / "vector_db"
 
 class VectorStoreService:
     def __init__(self):
-        self.embeddings = OpenAIEmbeddings(
+        self.embeddings = GoogleGenerativeAIEmbeddings(
             model="models/embedding-001",
             api_key=os.getenv("API_KEY")
         )

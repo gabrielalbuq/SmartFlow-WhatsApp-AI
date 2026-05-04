@@ -52,9 +52,9 @@ def process_webhook_data(data:dict):
             if not system_prompt:
                 raise(Exception("Nenhum prompt cadastrado ou ativo para a ia"))
 
-            llm = IAresponse(api_key, ia_model, system_prompt.prompt_text, resume_lead)
+            llm = IAresponse(api_key, ia_model, system_prompt.prompt_text, resume_lead, bot_id = None)
             response_lead = llm.generate_response(
-                    bot_id=ia_infos.id,
+                    #bot_id=ia_infos.id, talvez no futuro
                     message_lead=message_content,
                     history_message=historico
              )

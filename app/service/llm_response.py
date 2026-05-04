@@ -12,11 +12,12 @@ from langchain.agents import create_agent
 
 vector_service = VectorStoreService()
 class IAresponse:
-    def __init__(self, api_key:str, ia_model:str, system_prompt:str, resume_lead:str = ""):
+    def __init__(self, api_key:str, ia_model:str, system_prompt:str, resume_lead:str = "",bot_id = None):
         self.api_key = api_key
         self.ai_model = ia_model or "gpt-4o-mini"
         self.system_prompt = system_prompt
         self.resume_lead = resume_lead
+        self.bot_id = bot_id
 
         # i) MONTANDO O PROMPT
         template_base = self.system_prompt
@@ -52,14 +53,14 @@ class IAresponse:
                 api_key=self.api_key, 
                 temperature=0.2
             )
-
-    def generate_response(self, bot_id: int, message_lead: str, history_message: list = []) -> str:
+#bot_id: int colocar no futuro para o rag
+    def generate_response(self, message_lead: str, history_message: list = [], bot_id = None) -> str:
         try:
-            retriever = vector_service.get_retriever(bot_id=bot_id)
-            knowledge_tool = create_knowledge_tool(retriever)
+            #retriever = vector_service.get_retriever(bot_id=bot_id)
+            #knowledge_tool = create_knowledge_tool(retriever)
             agent = create_agent(
                 model=self.chat,
-                tools=[knowledge_tool],
+                tools=[],
                 
             )
     
