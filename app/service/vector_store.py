@@ -26,7 +26,12 @@ class VectorStoreService:
         """
         Carrega ou cria a collection vetorial de um bot específico.
         """
-        
+        persist_dir = VECTOR_DB_DIR / str(bot_id)
+
+        return Chroma(
+        persist_directory=str(persist_dir),
+        embedding_function=self.embeddings
+        )
 
     def get_retriever(self, bot_id: int | str, k: int = 4):
         """

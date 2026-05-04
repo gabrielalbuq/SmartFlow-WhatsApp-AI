@@ -38,7 +38,7 @@ class IAresponse:
         # Limpeza de segurança (tira espaços vazios que possam vir do banco)
         self.ai_model = self.ai_model.strip()
         self.api_key = self.api_key.strip()
-
+        ##### llm = get_llm(nome do provider)  ### pode se usado
         if "gemini" in self.ai_model.lower():
             print(f"Conectando ao modelo do Google: {self.ai_model}")
             self.chat = ChatGoogleGenerativeAI(
