@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.ext.mutable import MutableList
-
+from pgvector.sqlalchemy import Vector
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -73,3 +73,12 @@ class Lead(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     ia = relationship("IA", back_populates="leads")
+    
+class IAKnowledge(Base):
+    __tablename__ = "ia_knowledge"
+    id = Column(Integer, primary_key=True)
+    ia_id = Column(Integer, ForeignKey("ias.id"), nullable=False)
+    content = Column(String, nullable=False)  
+    embedding = Column(Vector(1536))          
+
+    ia = relationship("IA")
