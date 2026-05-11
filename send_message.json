@@ -4,7 +4,7 @@
         "key": {
             "fromMe": false,
             "id": "3E006913CF08F3468CDA71B555659371",
-            "remoteJid": "5585986613167@s.whatsapp.net"
+            "remoteJid": "85988888888@s.whatsapp.net"
         },
         "message": {
             "conversation": "Teste de mensagem",
@@ -28,6 +28,6 @@
     "destination": "http://18.231.24.248:8080/webhook",
     "event": "messages.upsert",
     "instance": "PythonBrasil",
-    "sender": "558587234490@s.whatsapp.net",
+    "sender": "5585991431000@s.whatsapp.net",
     "server_url": "localhost"
 }

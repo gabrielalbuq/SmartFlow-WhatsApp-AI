@@ -5,12 +5,12 @@ from langchain_core.prompts import PromptTemplate
 # Importando os dois motores: OpenAI e Google Gemini
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
-from app.service.vector_store import VectorStoreService
+from app.RAGcore.retriver import KnowledgeRetriever
 from app.service.tools import create_knowledge_tool
 from langchain.agents import create_agent
 
 
-vector_service = VectorStoreService()
+
 class IAresponse:
     def __init__(self, api_key:str, ia_model:str, system_prompt:str, resume_lead:str = "",bot_id = None):
         self.api_key = api_key
@@ -58,9 +58,15 @@ class IAresponse:
         try:
             #retriever = vector_service.get_retriever(bot_id=bot_id)
             #knowledge_tool = create_knowledge_tool(retriever)
+            tools = []
+            if bot_id:
+                 retriever = KnowledgeRetriever(bot_id)
+                 knowledge_tool = create_knowledge_tool(retriever)
+                 tools.append(knowledge_tool)
+                 
             agent = create_agent(
                 model=self.chat,
-                tools=[],
+                tools=tools,
                 
             )
     

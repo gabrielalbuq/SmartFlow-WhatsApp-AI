@@ -54,13 +54,14 @@ def process_webhook_data(data:dict):
 
             llm = IAresponse(api_key, ia_model, system_prompt.prompt_text, resume_lead, bot_id = None)
             response_lead = llm.generate_response(
-                    #bot_id=ia_infos.id, talvez no futuro
+                    bot_id=ia_infos.id, 
                     message_lead=message_content,
                     history_message=historico
              )
             if not response_lead:
                 raise(Exception("Nenhuma resposta foi gerada pela ia"))
-            
+            if isinstance(response_lead, list):
+                response_lead = next((item['text'] for item in response_lead if 'text' in item), "")
             # Tratar mensagem da IA
             list_message_to_lead = quebrar_mensagens(response_lead)
             if not list_message_to_lead:

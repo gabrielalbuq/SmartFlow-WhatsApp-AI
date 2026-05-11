@@ -6,24 +6,66 @@ def create_knowledge_tool(retriever):
     @tool("buscar_base_conhecimento")
     def buscar_base_conhecimento(query: str) -> str:
         """
-        Use esta ferramenta quando precisar consultar informações específicas que não estão no seu conhecimento geral, como:
+        Use esta ferramenta SOMENTE quando precisar consultar
+        informações específicas que podem existir na base de conhecimento.
 
-        - políticas da empresa
-        - informações de documentos enviados
-        - regras internas
-        - dados específicos do negócio
+        A base pode conter:
+        - documentos enviados
+        - políticas internas
+        - informações empresariais
+        - regras de negócio
+        - produtos e serviços
+        - informações privadas da empresa
 
-        Não use para:
-        - conversas gerais
+        NÃO use esta ferramenta para:
         - cumprimentos
-        - perguntas simples que não precisam de contexto externo
+        - conversas casuais
+        - respostas simples
+        - opiniões gerais
+        - perguntas que podem ser respondidas sem contexto externo
+
+        Sempre prefira usar esta ferramenta para perguntas factuais,
+        técnicas ou específicas da empresa.
         """
 
-        docs = retriever.invoke(query)
+        try:
 
-        if not docs:
-            return "Nenhuma informação relevante encontrada na base de conhecimento."
+            docs = retriever.invoke(query)
 
-        return "\n\n".join([doc.page_content for doc in docs])
+            if not docs:
+                return (
+                    "Nenhuma informação relevante foi encontrada "
+                    "na base de conhecimento."
+                )
+
+            context = []
+
+            for i, doc in enumerate(docs, start=1):
+
+                content = doc.page_content.strip()
+
+                if not content:
+                    continue
+
+                context.append(
+                    f"[Documento {i}]\n{content}"
+                )
+
+            if not context:
+                return (
+                    "Os documentos encontrados estavam vazios "
+                    "ou inválidos."
+                )
+
+            return "\n\n".join(context)
+
+        except Exception as ex:
+
+            print(f"Erro na tool de conhecimento: {ex}")
+
+            return (
+                "Ocorreu um erro ao consultar "
+                "a base de conhecimento."
+            )
 
     return buscar_base_conhecimento

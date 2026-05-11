@@ -79,6 +79,6 @@ class IAKnowledge(Base):
     id = Column(Integer, primary_key=True)
     ia_id = Column(Integer, ForeignKey("ias.id"), nullable=False)
     content = Column(String, nullable=False)  
-    embedding = Column(Vector(1536))          
+    embedding = Column(Vector(3072))          
 
     ia = relationship("IA")
