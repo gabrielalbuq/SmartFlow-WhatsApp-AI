@@ -15,7 +15,7 @@ class KnowledgeRetriever:
         results = self.knowledge_service.similarity_search(
             ia_id=self.ia_id,
             query=query,
-            k=1
+            k=3
         )
 
         documents = []

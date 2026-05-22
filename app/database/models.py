@@ -4,6 +4,7 @@ from pgvector.sqlalchemy import Vector
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.dialects.postgresql import TSVECTOR
 
 from app.service.crypto import decrypt_data
 
@@ -79,6 +80,7 @@ class IAKnowledge(Base):
     id = Column(Integer, primary_key=True)
     ia_id = Column(Integer, ForeignKey("ias.id"), nullable=False)
     content = Column(String, nullable=False)  
-    embedding = Column(Vector(3072))          
+    embedding = Column(Vector(3072))    
+    content_tsv =Column(TSVECTOR)  # Campo para armazenar o conteúdo formatado para busca textual      
 
     ia = relationship("IA")
