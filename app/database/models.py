@@ -81,6 +81,6 @@ class IAKnowledge(Base):
     ia_id = Column(Integer, ForeignKey("ias.id"), nullable=False)
     content = Column(String, nullable=False)  
     embedding = Column(Vector(3072))    
-    content_tsv =Column(TSVECTOR)  # Campo para armazenar o conteúdo formatado para busca textual      
+          
 
     ia = relationship("IA")

@@ -18,11 +18,12 @@ from app.RAGcore.Knowledge_ingestor import KnowledgeIngestor
 ingestor = KnowledgeIngestor()
 
 
-caminho_do_arquivo = "dados_alimentacao_ia3.txt"
+caminho_do_arquivo = "oi.txt"
 
 print("Iniciando a ingestão do arquivo TXT...")
 ingestor.ingest_txt(
-    ia_id=3,
+    ia_id=6,
     file_path=caminho_do_arquivo
 )
 print("Processo finalizado!")
+"poetry run python -m app.RAGcore.test_ingest"
