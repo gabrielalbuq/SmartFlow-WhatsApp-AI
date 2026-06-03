@@ -8,6 +8,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from app.RAGcore.retriver import KnowledgeRetriever
 from app.service.tools import create_knowledge_tool
 from langchain.agents import create_agent
+from app.service.tools import MandarFeedback
 
 
 
@@ -63,6 +64,8 @@ class IAresponse:
                  retriever = KnowledgeRetriever(bot_id)
                  knowledge_tool = create_knowledge_tool(retriever)
                  tools.append(knowledge_tool)
+                 tools.append(MandarFeedback)
+                 
                  
             agent = create_agent(
                 model=self.chat,

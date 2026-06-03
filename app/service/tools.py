@@ -69,3 +69,17 @@ def create_knowledge_tool(retriever):
             )
 
     return buscar_base_conhecimento
+
+
+@tool("mandar_feedback")
+def MandarFeedback(feedback: str) -> str :
+        """"use essa ferramenta quando não souber a resposta do usuário ou quando faltarem informações para responder.
+        O feedback deve ser claro e específico, indicando quais informações estão faltando ou o que o usuário não entendeu."""
+        try:
+            with open("feedback.txt", "a") as f:
+                f.write(feedback + "\n")
+        except Exception as ex:
+            print(f"Erro ao salvar feedback: {ex}")
+            return "Ocorreu um erro ao salvar seu feedback. Por favor, tente novamente mais tarde."
+     
+        return "Obrigado pelo seu feedback! Ele foi registrado com sucesso."
