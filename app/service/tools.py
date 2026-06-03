@@ -1,4 +1,7 @@
 from langchain_core.tools import tool
+from pathlib import Path
+
+
 
 
 def create_knowledge_tool(retriever):
@@ -70,16 +73,34 @@ def create_knowledge_tool(retriever):
 
     return buscar_base_conhecimento
 
+from pathlib import Path
+from langchain_core.tools import tool
 
-@tool("mandar_feedback")
-def MandarFeedback(feedback: str) -> str :
-        """"use essa ferramenta quando não souber a resposta do usuário ou quando faltarem informações para responder.
-        O feedback deve ser claro e específico, indicando quais informações estão faltando ou o que o usuário não entendeu."""
+
+from pathlib import Path
+
+def create_feedback_tool(ia_id: int):
+
+    @tool("mandar_feedback")
+    def mandar_feedback(feedback: str) -> str:
+        """
+        Use essa ferramenta quando não souber responder
+        ou quando faltarem informações para responder.
+        """
+
         try:
-            with open("feedback.txt", "a") as f:
-                f.write(feedback + "\n")
+            feedback_dir = Path("feedbacks")
+            feedback_dir.mkdir(exist_ok=True)
+
+            feedback_file = feedback_dir / f"ia_{ia_id}.txt"
+
+            with open(feedback_file, "a", encoding="utf-8") as f:
+                f.write(feedback.strip() + "\n")
+
+            return "Feedback registrado."
+
         except Exception as ex:
             print(f"Erro ao salvar feedback: {ex}")
-            return "Ocorreu um erro ao salvar seu feedback. Por favor, tente novamente mais tarde."
-     
-        return "Obrigado pelo seu feedback! Ele foi registrado com sucesso."
+            return "Erro ao registrar feedback."
+
+    return mandar_feedback

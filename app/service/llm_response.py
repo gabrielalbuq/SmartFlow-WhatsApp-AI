@@ -8,7 +8,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from app.RAGcore.retriver import KnowledgeRetriever
 from app.service.tools import create_knowledge_tool
 from langchain.agents import create_agent
-from app.service.tools import MandarFeedback
+from app.service.tools import create_feedback_tool
 
 
 
@@ -61,10 +61,12 @@ class IAresponse:
             #knowledge_tool = create_knowledge_tool(retriever)
             tools = []
             if bot_id:
+                
                  retriever = KnowledgeRetriever(bot_id)
                  knowledge_tool = create_knowledge_tool(retriever)
+                 feedback_tool = create_feedback_tool(bot_id)
                  tools.append(knowledge_tool)
-                 tools.append(MandarFeedback)
+                 tools.append(feedback_tool)
                  
                  
             agent = create_agent(
@@ -72,14 +74,11 @@ class IAresponse:
                 tools=tools,
                 
             )
-    
             system_prompt = self.prompt_template
 
             messages = [
                 ("system", system_prompt)
             ]
-
-            
             if history_message:
                 for msg in history_message:
 
