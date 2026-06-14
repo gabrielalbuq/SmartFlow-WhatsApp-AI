@@ -32,6 +32,9 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const addMessage = (text, sender, isError = false) => {
+        const shouldStickToBottom =
+            chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 120;
+
         const message = document.createElement("div");
         message.classList.add("message", sender);
 
@@ -41,7 +44,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         message.textContent = text;
         chatMessages.appendChild(message);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        if (shouldStickToBottom || sender === "user") {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
     };
 
     const renderWelcome = () => {
