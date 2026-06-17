@@ -33,11 +33,11 @@ def main():
 
     opcao = input("\nOpção: ")
 
-    # Solicita o ID da IA escolhida
+
     id_ia = int(input("\nID da IA para associar o conhecimento: "))
 
     if opcao == "1":
-        # Ingestão via texto direto
+        
         texto = input("\nDigite o texto que deseja ingerir:\n\n")
         ingestor.ingest_text(
             ia_id=id_ia,
@@ -45,7 +45,7 @@ def main():
         )
 
     elif opcao == "2":
-        # Ingestão via arquivo TXT
+       
         caminho_do_arquivo = input("\nCaminho do arquivo TXT: ")
         ingestor.ingest_txt(
             ia_id=id_ia,
@@ -53,7 +53,7 @@ def main():
         )
 
     elif opcao == "3":
-        # Ingestão via arquivo PDF
+        
         caminho_do_arquivo = input("\nCaminho do arquivo PDF: ")
         ingestor.ingest_pdf(
             ia_id=id_ia,
