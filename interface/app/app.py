@@ -6,7 +6,7 @@ import pytz
 from datetime import datetime
 
 from sqlalchemy.orm import relationship
-from crypto import *
+from .crypto import *
 
 load_dotenv()
 
@@ -353,6 +353,36 @@ def get_info_lead(ia_lead):
     leads_list.append(lead_dict)
 
     return render_template('lead.html', selected_lead=lead_dict)
+
+# API para Chat com a IA
+from flask import jsonify
+@app.route('/api/chat', methods=['POST'])
+def api_chat():
+    try:
+        data = request.get_json()
+        user_message = data.get('message', '')
+        ia_id = data.get('ia_id', 1)
+        message_history = data.get('history', [])
+        
+        if not user_message:
+            return jsonify({'success': False, 'error': 'Mensagem vazia'}), 400
+        
+        # Busca a IA no banco de dados
+        ia = IA.query.filter_by(id=ia_id).first()
+        if not ia:
+            return jsonify({'success': False, 'error': 'IA não encontrada'}), 404
+        
+        # Resposta simples para teste (será integrada com IA real depois)
+        response_text = f"Olá! Sou {ia.name}. Você perguntou: '{user_message}'. Como posso ajudar?"
+        
+        return jsonify({
+            'success': True,
+            'response': response_text
+        })
+    
+    except Exception as e:
+        print(f"Erro no chat: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
