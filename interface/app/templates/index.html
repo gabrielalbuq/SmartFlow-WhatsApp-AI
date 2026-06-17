@@ -43,9 +43,6 @@
             <button class="action-btn" data-toggle="modal" data-target="#promptModal{{ ia.id }}">
                 <i class="bi bi-chat-left-text"></i> Prompts
             </button>
-            <button class="action-btn" data-toggle="modal" data-target="#knowledgeModal{{ ia.id }}">
-                <i class="bi bi-database"></i> Conhecimento
-            </button>
             <a href="{{ url_for('get_leads_ia', ia_id=ia.id) }}" class="action-btn">
                 <i class="bi bi-people"></i> Leads
             </a>
@@ -123,53 +120,7 @@
     </div>
   </div>
 
-  
-  <div class="modal fade" id="knowledgeModal{{ ia.id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <form action="{{ url_for('knowledge_ingest') }}" method="POST" enctype="multipart/form-data">
-
-          <input type="hidden" name="ia_id" value="{{ ia.id }}">
-
-          <div class="modal-header border-0 pb-0">
-            <div class="w-100">
-              <h4 class="modal-title font-weight-bold">Base de Conhecimento - {{ ia.name }}</h4>
-              <p class="text-muted mb-0" style="font-size:0.9rem;">Adicionar conhecimento à IA</p>
-            </div>
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-          </div>
-
-          <div class="modal-body">
-            <label>Tipo de ingestão</label>
-            <div class="form-group">
-              <select class="form-control" name="ingestion_type">
-                <option value="text">Texto Direto</option>
-                <option value="txt">Arquivo TXT</option>
-                <option value="pdf">Arquivo PDF</option>
-              </select>
-            </div>
-
-            <label>Texto</label>
-            <div class="form-group">
-              <textarea class="form-control" name="text" rows="8" placeholder="Digite o conhecimento aqui"></textarea>
-            </div>
-
-            <label>Arquivo</label>
-            <div class="form-group">
-              <input type="file" class="form-control" name="file">
-            </div>
-
-            <button type="submit" class="btn btn-submit w-100 py-2">
-              Ingerir Conhecimento
-            </button>
-          </div>
-
-        </form>
-      </div>
-    </div>
-  </div>
-
-<div class="modal fade" id="deleteIAModal{{ ia.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal fade" id="deleteIAModal{{ ia.id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content" style="border-color: #ff4d4d;">
         <div class="modal-body text-center p-4">
