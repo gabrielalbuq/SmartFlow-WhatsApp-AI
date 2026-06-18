@@ -11,9 +11,8 @@ from langchain.agents import create_agent
 from app.service.tools import create_feedback_tool
 
 
-
 class IAresponse:
-    def __init__(self, api_key:str, ia_model:str, system_prompt:str, resume_lead:str = "",bot_id = None):
+    def __init__(self, api_key:str, ia_model:str, system_prompt:str, resume_lead:str = "", bot_id = None):
         self.api_key = api_key
         self.ai_model = ia_model or "gpt-4o-mini"
         self.system_prompt = system_prompt
@@ -25,23 +24,22 @@ class IAresponse:
         template_base = self.system_prompt
         if self.resume_lead:
             print("Resumo localizado!")
-            template_base += f"\n\nResumo de todas as interaÃ§Ãµes que teve com este lead: {self.resume_lead}"
+            template_base += f"\n\nResumo de todas as interações que teve com este lead: {self.resume_lead}"
         
         template_base += """
         
         REGRA RIGOROSA DE COMPORTAMENTO:
-        Analise o 'HistÃ³rico da conversa' abaixo. Se o histÃ³rico NÃƒO estiver vazio (ou seja, se jÃ¡ existir uma conversa em andamento), VOCÃŠ ESTÃ ESTRITAMENTE PROIBIDO de usar saudaÃ§Ãµes (como "OlÃ¡", "Oi", "Bom dia", "Tudo bem?") e PROIBIDO de se apresentar novamente. VÃ¡ direto ao ponto e responda Ã  nova pergunta do UsuÃ¡rio como se fosse uma conversa contÃ­nua no WhatsApp.
+        Analise o 'Histórico da conversa' abaixo. Se o histórico NÃO estiver vazio (ou seja, se já existir uma conversa em andamento), VOCÊ ESTÁ ESTRITAMENTE PROIBIDO de usar saudações (como "Olá", "Oi", "Bom dia", "Tudo bem?") e PROIBIDO de se apresentar novamente. Vá direto ao ponto e responda à nova pergunta do Usuário como se fosse uma conversa contínua no WhatsApp.
         """
 
-        # O LangChain precisa das variÃ¡veis {history} e {input} no final
-        template_base += "\n\nHistÃ³rico da conversa:\n{history}\n\nUsuÃ¡rio: {input}\nAssistente:"
+        # O LangChain precisa das variáveis {history} e {input} no final (usado no generate_resume)
+        template_base += "\n\nHistórico da conversa:\n{history}\n\nUsuário: {input}\nAssistente:"
         self.prompt_template = template_base
 
-        # ii) MOTOR AGNÃ“STICO (A "Chave Mestra")
-        # Limpeza de seguranÃ§a (tira espaÃ§os vazios que possam vir do banco)
+        # ii) MOTOR AGNÓSTICO (A "Chave Mestra")
         self.api_key = self.api_key.strip()
         self.ai_model = self._normalize_model(self.ai_model, self.api_key)
-        ##### llm = get_llm(nome do provider)  ### pode se usado
+        
         if "gemini" in self.ai_model.lower():
             print(f"Conectando ao modelo do Google: {self.ai_model}")
             self.chat = ChatGoogleGenerativeAI(
@@ -74,44 +72,36 @@ class IAresponse:
             return "gpt-4o-mini"
 
         return model or "gpt-4o-mini"
-#bot_id: int colocar no futuro para o rag
+
     def generate_response(self, message_lead: str, history_message: list = [], bot_id = None) -> str:
         try:
-            system_prompt = self.prompt_template
-
+            tools = []
+            
+            # Inicializando e acoplando as ferramentas ao agente de forma segura
             if bot_id:
                 try:
                     retriever = KnowledgeRetriever(bot_id)
-                    docs = retriever.invoke(message_lead)
-                    context_parts = []
+                    knowledge_tool = create_knowledge_tool(retriever)
+                    feedback_tool = create_feedback_tool(bot_id)
+                    
+                    tools.append(knowledge_tool)
+                    tools.append(feedback_tool)
+                    print(f"[Agente] {len(tools)} ferramentas carregadas com sucesso para o bot_id: {bot_id}")
+                except Exception as tool_error:
+                    print(f"[Agente] Erro ao carregar as ferramentas: {tool_error}")
 
-                    for i, doc in enumerate(docs, start=1):
-                        content = (doc.page_content or "").strip()
-                        if content:
-                            context_parts.append(f"[Documento {i}]\n{content}")
-
-                    if context_parts:
-                        knowledge_context = "\n\nBASE DE CONHECIMENTO DA IA:\n"
-                        knowledge_context += "\n\n".join(context_parts)
-                        knowledge_context += """
-
-INSTRUCAO RAG:
-Use a BASE DE CONHECIMENTO DA IA acima como fonte principal para responder.
-Se a pergunta estiver relacionada a esse conteudo, responda com base nele.
-Se a resposta nao estiver explicitamente na base, diga que nao encontrou a informacao na base de conhecimento.
-"""
-                        system_prompt += knowledge_context
-                        print(f"[RAG] Contexto carregado: {len(context_parts)} documentos")
-                    else:
-                        print("[RAG] Nenhum contexto encontrado para esta IA")
-
-                except Exception as rag_error:
-                    print(f"[RAG] Erro ao buscar conhecimento: {rag_error}")
-
+            # Criando a estrutura do Agente usando o modelo agnóstico e a lista de tools
+            agent = create_agent(
+                model=self.chat,
+                tools=tools,
+            )
+            
+            system_prompt = self.prompt_template
             messages = [
                 ("system", system_prompt)
             ]
 
+            # Tratamento de histórico adaptado para o formato de mensagens do Agente
             if history_message:
                 for msg in history_message:
                     if msg.get("content") == message_lead and msg.get("role") == "user":
@@ -119,45 +109,50 @@ Se a resposta nao estiver explicitamente na base, diga que nao encontrou a infor
 
                     if msg.get("role") == "user":
                         messages.append(("user", msg.get("content") or ""))
-
                     elif msg.get("role") == "assistant":
                         messages.append(("assistant", msg.get("content") or ""))
 
-            print(f"Total de interacoes carregadas: {len(history_message)}")
+            print(f"Total de interações carregadas: {len(history_message)}")
 
+            # Insere o input mais recente do lead
             messages.append(("user", message_lead))
 
-            response = self.chat.invoke(messages)
-            resposta = response.content
+            # Executa a Chain do Agente passando o histórico completo
+            response = agent.invoke({
+                "messages": messages
+            })
 
-            print(f"Resposta da IA: {resposta}")
+            # Captura o conteúdo do último retorno (a resposta final gerada)
+            resposta = response["messages"][-1].content
+            print(f"Resposta da IA (Agente): {resposta}")
 
             return resposta
 
         except Exception as ex:
             self.last_error = str(ex)
-            print(f"Erro ao processar resposta: {self.last_error}")
+            print(f"Erro ao processar resposta no agente: {self.last_error}")
             return ""
+
     def generate_resume(self, history_message:list=[]) -> str:
         try:
             message = "Gere um resumo detalhado dessa conversa"
             system_prompt = """
-            VocÃª Ã© um assistente especializado em resumir conversas com leads. Seu objetivo Ã© identificar, extrair e armazenar de forma clara todos os pontos-chave e informaÃ§Ãµes importantes discutidas durante a conversa. Ao elaborar o resumo, siga estas diretrizes:
+            Você é um assistente especializado em resumir conversas com leads. Seu objetivo é identificar, extrair e armazenar de forma clara todos os pontos-chave e informações importantes discutidas durante a conversa. Ao elaborar o resumo, siga estas diretrizes:
 
-            1. **IdentificaÃ§Ã£o dos Pontos-Chave:** Extraia os tÃ³picos principais da conversa, incluindo necessidades, interesses, objeÃ§Ãµes e prÃ³ximos passos do lead.
-            2. **OrganizaÃ§Ã£o das InformaÃ§Ãµes:** Estruture o resumo de maneira clara e organizada, facilitando a visualizaÃ§Ã£o dos dados mais relevantes.
-            3. **Foco nas InformaÃ§Ãµes Relevantes:** Certifique-se de que nenhuma informaÃ§Ã£o importante seja omitida. Dados como informaÃ§Ãµes de contato, dÃºvidas especÃ­ficas e requisitos do lead devem ser destacados.
-            4. **Clareza e ConcisÃ£o:** O resumo deve ser conciso, mas detalhado o suficiente para fornecer um panorama completo da conversa.
-            5. **Privacidade e SeguranÃ§a:** Garanta que todas as informaÃ§Ãµes sensÃ­veis sejam tratadas com a devida confidencialidade.
+            1. **Identificação dos Pontos-Chave:** Extraia os tópicos principais da conversa, incluindo necessidades, interesses, objeções e próximos passos do lead.
+            2. **Organização das Informações:** Estruture o resumo de maneira clara e organizada, facilitando a visualização dos dados mais relevantes.
+            3. **Foco nas Informações Relevantes:** Certifique-se de que nenhuma informação importante seja omitida. Dados como informações de contato, dúvidas específicas e requisitos do lead devem ser destacados.
+            4. **Clareza e Concisão:** O resumo deve ser conciso, mas detalhado o suficiente para fornecer um panorama completo da conversa.
+            5. **Privacidade e Segurança:** Garanta que todas as informações sensíveis sejam tratadas com a devida confidencialidade.
 
-            Utilize este prompt para transformar a conversa em um resumo que possibilite um acompanhamento eficaz e estratÃ©gico do lead.
+            Utilize este prompt para transformar a conversa em um resumo que possibilite um acompanhamento eficaz e estratégico do lead.
 
-            HistÃ³rico da conversa:
+            Histórico da conversa:
             {history}
-            UsuÃ¡rio: {input}
+            Usuário: {input}
             """
 
-            # i) Utiliza o motor agnÃ³stico jÃ¡ configurado no __init__ (self.chat) - Ele jÃ¡ sabe se Ã© Gemini ou OpenAI
+            # i) Utiliza o motor agnóstico já configurado no __init__ (self.chat) - Ele já sabe se é Gemini ou OpenAI
             memory = ConversationBufferWindowMemory(k=60)
             review_template = PromptTemplate.from_template(system_prompt)
             
@@ -168,7 +163,7 @@ Se a resposta nao estiver explicitamente na base, diga que nao encontrou a infor
                 prompt=review_template
             )
 
-            # Alimenta a memÃ³ria com cada mensagem do histÃ³rico
+            # Alimenta a memória com cada mensagem do histórico
             if not history_message:
                 conversation.memory.chat_memory.add_user_message(message)
             else:
@@ -182,15 +177,11 @@ Se a resposta nao estiver explicitamente na base, diga que nao encontrou a infor
                     elif msg["role"] == "assistant":
                         conversation.memory.chat_memory.add_ai_message(msg.get("content") or "")
 
-            print(f"Total de {len(history_message)} interaÃ§Ãµes")   
+            print(f"Total de {len(history_message)} interações")   
             resposta = conversation.predict(input=message)
             print(f"Resposta da IA   : {resposta}")
             
             return resposta
         except Exception as ex:
-            print(f"âŒ Erro ao processar resposta: {ex}")
+            print(f"❌ Erro ao processar resposta: {ex}")
             return None
-
-
-
-
