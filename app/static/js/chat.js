@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+﻿document.addEventListener("DOMContentLoaded", () => {
     const chatMessages = document.getElementById("chat-messages");
     const messageInput = document.getElementById("message-input");
     const chatForm = document.getElementById("chat-form");
@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (selectedIaLabel) {
             selectedIaLabel.textContent = `ID ${iaId}`;
         }
-        addMessage(`Ola! Estou conversando como a IA de ID ${iaId}.`, "bot");
+        addMessage(`Olá! Você está conversando com a IA de ID ${iaId}.`, "bot");
     };
 
     const setLoading = (isLoading) => {
@@ -161,3 +161,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderWelcome();
 });
+
+

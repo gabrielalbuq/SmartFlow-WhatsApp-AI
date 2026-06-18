@@ -1,4 +1,4 @@
-/* Custom Dark SaaS Theme overrides para Bootstrap */
+﻿/* Custom Dark SaaS Theme overrides para Bootstrap */
 body {
   background-color: #121212 !important;
   color: #ffffff !important;
@@ -24,7 +24,7 @@ body {
   border-left: 3px solid #00e676 !important;
 }
 
-/* Força as classes claras do Bootstrap a ficarem escuras */
+/* ForÃ§a as classes claras do Bootstrap a ficarem escuras */
 .bg-light {
   background-color: #1a1a1a !important;
 }
@@ -35,7 +35,7 @@ body {
   border-right: 1px solid #2a2a2a !important;
 }
 
-/* Botões Globais */
+/* BotÃµes Globais */
 .btn-primary,
 .btn-success {
   background-color: #1a1a1a !important;
@@ -69,7 +69,7 @@ body {
   color: #fff;
 }
 
-/* Dashboard - Top Cards (Métricas) */
+/* Dashboard - Top Cards (MÃ©tricas) */
 .metrics-row {
   display: flex;
   gap: 20px;
@@ -120,6 +120,8 @@ body {
 }
 .ia-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
   justify-content: space-between;
   border-top: 1px solid #2a2a2a;
   padding-top: 15px;
@@ -145,7 +147,7 @@ body {
   color: #ff4d4d;
 }
 
-/* Estilização dos Modais Bootstrap */
+/* EstilizaÃ§Ã£o dos Modais Bootstrap */
 .modal-content {
   background-color: #1a1a1a !important;
   border: 1px solid #333 !important;
@@ -166,7 +168,7 @@ body {
   opacity: 1;
 }
 
-/* Formulários */
+/* FormulÃ¡rios */
 .form-control,
 .form-control:focus,
 textarea {
@@ -185,7 +187,7 @@ label {
   margin-bottom: 5px;
 }
 
-/* Efeito de Hover nos botões de ação (Editar/Excluir) */
+/* Efeito de Hover nos botÃµes de aÃ§Ã£o (Editar/Excluir) */
 .action-btn:hover {
   color: #ffffff !important;
   transform: translateY(-2px);
@@ -195,3 +197,4 @@ label {
 .action-btn.delete:hover {
   color: #ff1a1a !important;
 }
+

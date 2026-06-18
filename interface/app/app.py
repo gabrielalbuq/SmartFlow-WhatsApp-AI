@@ -1,12 +1,22 @@
-from flask import Flask, render_template, request, redirect, url_for
+﻿from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
+import sys
+from pathlib import Path
+from uuid import uuid4
 import pytz
 from datetime import datetime
 
 from sqlalchemy.orm import relationship
+from werkzeug.utils import secure_filename
 from .crypto import *
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from app.RAGcore.Knowledge_ingestor import KnowledgeIngestor
 
 load_dotenv()
 
@@ -14,7 +24,7 @@ load_dotenv()
 BR_TZ = pytz.timezone('America/Sao_Paulo')
 
 # Configuração do aplicativo
-app = Flask(__name__)
+app = Flask(__name__, instance_path=str(PROJECT_ROOT / "interface" / "instance"))
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -354,6 +364,56 @@ def get_info_lead(ia_lead):
 
     return render_template('lead.html', selected_lead=lead_dict)
 
+
+@app.route('/upload-conhecimento', methods=['POST'])
+def upload_conhecimento():
+    ia_id = request.form.get('ia_id', type=int)
+    uploaded_file = request.files.get('knowledge_file')
+
+    if not ia_id:
+        flash('IA invalida para upload de conhecimento.', 'danger')
+        return redirect(url_for('index'))
+
+    ia = IA.query.filter_by(id=ia_id).first()
+    if not ia:
+        flash(f'IA com ID {ia_id} nao encontrada.', 'danger')
+        return redirect(url_for('index'))
+
+    if not uploaded_file or not uploaded_file.filename:
+        flash('Selecione um arquivo PDF ou TXT.', 'warning')
+        return redirect(url_for('index'))
+
+    original_name = secure_filename(uploaded_file.filename)
+    extension = Path(original_name).suffix.lower()
+
+    if extension not in {'.pdf', '.txt'}:
+        flash('Formato invalido. Envie apenas arquivos .pdf ou .txt.', 'warning')
+        return redirect(url_for('index'))
+
+    upload_dir = PROJECT_ROOT / 'uploads' / 'knowledge'
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    temp_path = upload_dir / f'ia_{ia_id}_{uuid4().hex}_{original_name}'
+
+    try:
+        uploaded_file.save(temp_path)
+
+        ingestor = KnowledgeIngestor()
+        if extension == '.pdf':
+            ingestor.ingest_pdf(ia_id=ia_id, file_path=str(temp_path))
+        else:
+            ingestor.ingest_txt(ia_id=ia_id, file_path=str(temp_path))
+
+        flash(f'Conhecimento enviado com sucesso para a IA {ia.name}.', 'success')
+
+    except Exception as ex:
+        print(f'Erro ao ingerir conhecimento: {ex}')
+        flash(f'Erro ao processar arquivo: {ex}', 'danger')
+
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
+
+    return redirect(url_for('index'))
 # API para Chat com a IA
 from flask import jsonify
 @app.route('/api/chat', methods=['POST'])
@@ -386,3 +446,5 @@ def api_chat():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+

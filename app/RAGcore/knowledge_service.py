@@ -1,52 +1,104 @@
+﻿import json
 import os
 
-from flask_sqlalchemy import query
 from app.database.connection import init_db
 from app.database.models import IAKnowledge
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from sqlalchemy import text
+
 
 class KnowledgeService:
 
     def __init__(self):
         self.embeddings = GoogleGenerativeAIEmbeddings(
             model="gemini-embedding-001",
-            google_api_key=os.getenv("API_KEY")
+            google_api_key=os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
         )
 
+    def _is_sqlite(self, db) -> bool:
+        return db.get_bind().dialect.name == "sqlite"
+
+    def _ensure_sqlite_table(self, db):
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS ia_knowledge (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ia_id INTEGER NOT NULL,
+                content TEXT NOT NULL,
+                embedding TEXT NOT NULL
+            )
+        """))
+
     def add_chunk(self, ia_id: int, chunk: str):
-        """Salva um único chunk de texto com seu respectivo embedding no banco."""
+        """Salva um chunk de texto com seu embedding no banco."""
         db = init_db()
         try:
             embedding = self.embeddings.embed_query(chunk)
 
-            knowledge = IAKnowledge(
-                ia_id=ia_id,
-                content=chunk,
-                embedding=embedding
-            )
+            if self._is_sqlite(db):
+                self._ensure_sqlite_table(db)
+                db.execute(
+                    text("""
+                        INSERT INTO ia_knowledge (ia_id, content, embedding)
+                        VALUES (:ia_id, :content, :embedding)
+                    """),
+                    {
+                        "ia_id": ia_id,
+                        "content": chunk,
+                        "embedding": json.dumps(embedding),
+                    }
+                )
+            else:
+                knowledge = IAKnowledge(
+                    ia_id=ia_id,
+                    content=chunk,
+                    embedding=embedding
+                )
+                db.add(knowledge)
 
-            db.add(knowledge)
             db.commit()
-            
-        except Exception :
+
+        except Exception:
             db.rollback()
             raise
         finally:
             db.close()
 
-    def similarity_search(  #na vdd eh uma hybrid search 
-        self,
-        ia_id: int,
-        query: str,
-        k: int = 5
-    ):
-        
-        query_embedding = self.embeddings.embed_query(query)
-
+    def similarity_search(self, ia_id: int, query: str, k: int = 5):
         db = init_db()
-
         try:
+            if self._is_sqlite(db):
+                self._ensure_sqlite_table(db)
+                result = db.execute(
+                    text("""
+                        SELECT content
+                        FROM ia_knowledge
+                        WHERE ia_id = :ia_id
+                          AND lower(content) LIKE :query
+                        ORDER BY id DESC
+                        LIMIT :k
+                    """),
+                    {
+                        "ia_id": ia_id,
+                        "query": f"%{query.lower()}%",
+                        "k": k,
+                    }
+                ).fetchall()
+
+                if not result:
+                    result = db.execute(
+                        text("""
+                            SELECT content
+                            FROM ia_knowledge
+                            WHERE ia_id = :ia_id
+                            ORDER BY id DESC
+                            LIMIT :k
+                        """),
+                        {"ia_id": ia_id, "k": k}
+                    ).fetchall()
+
+                return [row.content for row in result]
+
+            query_embedding = self.embeddings.embed_query(query)
 
             sql = text("""
             WITH semantic_search AS (
@@ -124,4 +176,4 @@ class KnowledgeService:
             return [row.content for row in result]
 
         finally:
-            db.close()   
+            db.close()
