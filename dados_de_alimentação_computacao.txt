@@ -10,3 +10,45 @@ A cadeira de extensão 3 atualmente é dada pelo professor paulo Henrique
 
 
 tirando laboratórios de pesquisa, temos o LABCOMP, um laboratório de livre acesso ,  localizado no bloco P 
+
+
+
+Área da Saúde
+Medicina
+Enfermagem
+Nutrição
+Terapia Ocupacional
+Medicina Veterinária
+Educação Física
+Ciências Biológicas
+Ciências Biológicas (Bacharelado)
+Ciências Biológicas (Licenciatura)
+Computação e Tecnologia
+Ciência da Computação
+Computação (Licenciatura)
+Sistemas de Informação
+Exatas e Naturais
+Matemática
+Física (Bacharelado)
+Física (Licenciatura)
+Química
+Humanas e Educação
+Pedagogia
+História
+Geografia (Bacharelado)
+Geografia (Licenciatura)
+Ciências Sociais
+Filosofia
+Serviço Social
+Letras e Artes
+Letras Português/Inglês
+Letras Português/Literaturas
+Música (Bacharelado)
+Música (Licenciatura)
+Artes Visuais
+Gestão e Negócios
+Administração
+Ciências Contábeis
+Direito
+
+Esses cursos são distribuídos entre os campi de Fortaleza (Itaperi), Quixadá, Iguatu, Limoeiro do Norte, Crateús, Tauá, Itapipoca, Aracati, Mombaça, Canindé e Quixeramobim.
