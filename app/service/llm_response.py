@@ -20,7 +20,7 @@ class IAresponse:
         self.bot_id = bot_id
         self.last_error = ""
 
-        # i) MONTANDO O PROMPT
+       
         template_base = self.system_prompt
         if self.resume_lead:
             print("Resumo localizado!")
@@ -32,11 +32,11 @@ class IAresponse:
         Analise o 'Histórico da conversa' abaixo. Se o histórico NÃO estiver vazio (ou seja, se já existir uma conversa em andamento), VOCÊ ESTÁ ESTRITAMENTE PROIBIDO de usar saudações (como "Olá", "Oi", "Bom dia", "Tudo bem?") e PROIBIDO de se apresentar novamente. Vá direto ao ponto e responda à nova pergunta do Usuário como se fosse uma conversa contínua no WhatsApp.
         """
 
-        # O LangChain precisa das variáveis {history} e {input} no final (usado no generate_resume)
+        
         template_base += "\n\nHistórico da conversa:\n{history}\n\nUsuário: {input}\nAssistente:"
         self.prompt_template = template_base
 
-        # ii) MOTOR AGNÓSTICO (A "Chave Mestra")
+        
         self.api_key = self.api_key.strip()
         self.ai_model = self._normalize_model(self.ai_model, self.api_key)
         
@@ -77,7 +77,7 @@ class IAresponse:
         try:
             tools = []
             
-            # Inicializando e acoplando as ferramentas ao agente de forma segura
+            
             if bot_id:
                 try:
                     retriever = KnowledgeRetriever(bot_id)
@@ -90,7 +90,7 @@ class IAresponse:
                 except Exception as tool_error:
                     print(f"[Agente] Erro ao carregar as ferramentas: {tool_error}")
 
-            # Criando a estrutura do Agente usando o modelo agnóstico e a lista de tools
+            
             agent = create_agent(
                 model=self.chat,
                 tools=tools,
@@ -101,7 +101,7 @@ class IAresponse:
                 ("system", system_prompt)
             ]
 
-            # Tratamento de histórico adaptado para o formato de mensagens do Agente
+            
             if history_message:
                 for msg in history_message:
                     if msg.get("content") == message_lead and msg.get("role") == "user":
@@ -114,15 +114,13 @@ class IAresponse:
 
             print(f"Total de interações carregadas: {len(history_message)}")
 
-            # Insere o input mais recente do lead
+           
             messages.append(("user", message_lead))
-
-            # Executa a Chain do Agente passando o histórico completo
             response = agent.invoke({
                 "messages": messages
             })
 
-            # Captura o conteúdo do último retorno (a resposta final gerada)
+            
             resposta = response["messages"][-1].content
             print(f"Resposta da IA (Agente): {resposta}")
 
@@ -152,28 +150,28 @@ class IAresponse:
             Usuário: {input}
             """
 
-            # i) Utiliza o motor agnóstico já configurado no __init__ (self.chat) - Ele já sabe se é Gemini ou OpenAI
+            
             memory = ConversationBufferWindowMemory(k=60)
             review_template = PromptTemplate.from_template(system_prompt)
             
-            # ii) Passa o self.chat para a chain
+           
             conversation = ConversationChain(
                 llm=self.chat,
                 memory=memory,
                 prompt=review_template
             )
 
-            # Alimenta a memória com cada mensagem do histórico
+           
             if not history_message:
                 conversation.memory.chat_memory.add_user_message(message)
             else:
                 for msg in history_message:
 
-                    #Adicionando memoria do User
+                    
                     if msg["role"] == "user":
                         conversation.memory.chat_memory.add_user_message(msg.get("content") or "")
                     
-                    #Adicionando memoria da IA
+                    
                     elif msg["role"] == "assistant":
                         conversation.memory.chat_memory.add_ai_message(msg.get("content") or "")
 
